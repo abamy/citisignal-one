@@ -1,7 +1,9 @@
 [
   {
     "id": "main",
-    "components": ["section"]
+    "components": [
+      "section"
+    ]
   },
   {
     "id": "section",
@@ -25,6 +27,7 @@
       "icon-block",
       "content-fragment-offer",
       "social-media",
+      "simple-logo",
       "product-list-page",
       "enrichment",
       "product-details",
@@ -38,58 +41,91 @@
   },
   {
     "id": "columns",
-    "components": ["column"]
+    "components": [
+      "column"
+    ]
   },
   {
     "id": "columnsjo",
-    "components": ["columnsjo-text", "columnsjo-icon", "columnsjo-promo"]
+    "components": [
+      "columnsjo-text",
+      "columnsjo-icon",
+      "columnsjo-promo"
+    ]
   },
   {
     "id": "column",
-    "components": ["text", "image", "button", "title"]
+    "components": [
+      "text",
+      "image",
+      "button",
+      "title"
+    ]
   },
   {
     "id": "accordion",
-    "components": ["accordion-item"]
+    "components": [
+      "accordion-item"
+    ]
   },
   {
     "id": "cards",
-    "components": ["card"]
+    "components": [
+      "card"
+    ]
   },
   {
     "id": "carousel",
-    "components": ["carousel-item"]
+    "components": [
+      "carousel-item"
+    ]
   },
   {
     "id": "table",
-    "components": ["table-row"]
+    "components": [
+      "table-row"
+    ]
   },
   {
     "id": "table-1-columns",
-    "components": ["table-col-1"]
+    "components": [
+      "table-col-1"
+    ]
   },
   {
     "id": "table-2-columns",
-    "components": ["table-col-2"]
+    "components": [
+      "table-col-2"
+    ]
   },
   {
     "id": "table-3-columns",
-    "components": ["table-col-3"]
+    "components": [
+      "table-col-3"
+    ]
   },
   {
     "id": "table-4-columns",
-    "components": ["table-col-4"]
+    "components": [
+      "table-col-4"
+    ]
   },
   {
     "id": "table-5-columns",
-    "components": ["table-col-5"]
+    "components": [
+      "table-col-5"
+    ]
   },
   {
     "id": "tabs",
-    "components": ["tabs-item"]
+    "components": [
+      "tabs-item"
+    ]
   },
   {
     "id": "icon-block",
-    "components": ["icon-block-item"]
+    "components": [
+      "icon-block-item"
+    ]
   }
 ]
