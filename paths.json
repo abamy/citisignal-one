@@ -1,4 +1,6 @@
+
 {
+  "paths": {
     "mappings": [
       "/content/citisignal-one/:/",
       "/content/citisignal-one/configuration:/.helix/config.json",
@@ -16,4 +18,5 @@
       "/content/citisignal-one",
       "/content/dam/citisignal/images/products/"
     ]
+  }
 }

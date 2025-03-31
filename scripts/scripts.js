@@ -1,23 +1,22 @@
 /* eslint-disable import/no-cycle */
 import { events } from '@dropins/tools/event-bus.js';
 import {
-  decorateBlocks,
+  sampleRUM,
+  loadHeader,
+  loadFooter,
   decorateButtons,
   decorateIcons,
   decorateSections,
-  decorateSectionFromMetadata,
+  decorateBlocks,
   decorateTemplateAndTheme,
-  loadBlocks,
+  waitForFirstImage,
+  loadSection,
+  loadSections,
   loadCSS,
-  loadFooter,
-  loadHeader,
-  sampleRUM,
-  waitForLCP,
   getMetadata,
   loadScript,
   toCamelCase,
-  toClassName,
-  readBlockConfig,
+  toClassName
 } from './aem.js';
 import { getProduct, getSkuFromUrl, trackHistory } from './commerce.js';
 import initializeDropins from './dropins.js';
@@ -197,6 +196,19 @@ function autolinkModals(element) {
 }
 
 /**
+ * Builds all synthetic blocks in a container element.
+ * @param {Element} main The container element
+ */
+function buildAutoBlocks() {
+  try {
+    // TODO: add auto block, if needed
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Auto Blocking failed', error);
+  }
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -205,10 +217,8 @@ export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);
+  buildAutoBlocks(main);
   decorateSections(main);
-  decorateSectionFromMetadata(main); // custom
-  scheduleSections(main);
-  scheduleBlocks(main);
   decorateBlocks(main);
 }
 
@@ -221,6 +231,85 @@ function preloadFile(href, as) {
   document.head.appendChild(link);
 }
 
+function addOverlayRule(ruleSet, selector, property, value) {
+  if (!ruleSet.has(selector)) {
+    ruleSet.set(selector,[`--${property}: ${value};`])
+  } else {
+    ruleSet.get(selector).push(`--${property}: ${value};`);
+  }
+}
+
+async function loadThemeSpreadSheetConfig() {
+  const theme = getMetadata('design');
+  if (!theme) return;
+  const resp = await fetch(`/designs/${theme}.json?offset=0&limit=500`);
+
+  if (resp.status === 200) {
+    // create style element that should be last in the head
+    document.head.insertAdjacentHTML('beforeend', `<style id="style-overrides"></style>`);
+    const sheet = window.document.styleSheets[document.styleSheets.length - 1];
+    // load spreadsheet
+    const json = await resp.json();
+    const tokens = json.data || json.default.data;
+    const root = document.querySelector(':root');
+    // go through the entries and create the rule set
+    let ruleSet = new Map();
+    tokens.forEach((e) => {
+      const { Property, Value, Section, Block } = e;
+      let selector = '';
+      if (Section.length === 0 && Block.length === 0) {
+        // :root { --<property>: <value>; }
+        addOverlayRule(ruleSet, ':root', Property, Value);
+      } else {
+        // define the section selector if set
+        if (Section.length > 0) {
+          selector = `main .section.${Section}`;
+        } else {
+          selector = `main .section`;
+        }
+        // define the block selector if set
+        if (Block.length) {
+          Block.split(',').forEach((entry) => {
+            entry = entry.trim();
+            let blockSelector = selector;
+            // special cases: default wrapper, text, image, button, title
+            switch (entry) {
+              case "default":
+                  blockSelector += ` .default-content-wrapper`;
+                  break;
+              case "image":
+                  blockSelector += ` .default-content-wrapper img, ${selector} .block.columns img`;
+                  break;
+              case "text":
+                  blockSelector += ` .default-content-wrapper p:not(:has(:is(a.button , picture))), ${selector} .columns.block p:not(:has(:is(a.button , picture)))`;
+                  break;
+              case "button":
+                  blockSelector += ` .default-content-wrapper a.button`;
+                  break;
+              case "title":
+                  blockSelector += ` .default-content-wrapper :is(h1,h2,h3,h4,h5,h6), ${selector} .columns.block :is(h1,h2,h3,h4,h5,h6)`;
+                break;
+              default:
+                blockSelector += ` .block.${entry}`;
+            }
+            // main .section.<section-name> .block.<block-name> { --<property>: <value>; }
+            // or any of the spacial cases above
+            addOverlayRule(ruleSet, blockSelector, Property, Value);
+          });
+        } else  {
+          // main .section.<section-name> { --<property>: <value>; }
+          addOverlayRule(ruleSet, selector, Property, Value);
+        }
+      }
+    });
+    // finally write the rule sets to the style element
+    console.log(ruleSet);
+    ruleSet.forEach((rules, selector) => {
+      sheet.insertRule(`${selector} {${rules.join(';')}}`, sheet.cssRules.length);
+    });
+  }
+}
+
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
@@ -228,6 +317,7 @@ function preloadFile(href, as) {
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   await initializeDropins();
+  await loadThemeSpreadSheetConfig();
   decorateTemplateAndTheme();
 
   // Instrument experimentation plugin
@@ -239,6 +329,8 @@ async function loadEager(doc) {
     // eslint-disable-next-line import/no-relative-packages
     const { loadEager: runEager } = await import('../plugins/experimentation/src/index.js');
     await runEager(document, { audiences: AUDIENCES }, pluginContext);
+
+    sampleRUM.enhance();
   }
 
   window.adobeDataLayer = window.adobeDataLayer || [];
@@ -311,7 +403,7 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    await waitForLCP(LCP_BLOCKS);
+    await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
 
   events.emit('eds/lcp', true);
@@ -334,7 +426,7 @@ async function loadLazy(doc) {
   autolinkModals(doc);
 
   const main = doc.querySelector('main');
-  await loadBlocks(main);
+  await loadSections(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
@@ -353,10 +445,6 @@ async function loadLazy(doc) {
   }
 
   trackHistory();
-
-  sampleRUM('lazy');
-  sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
-  sampleRUM.observe(main.querySelectorAll('picture > img'));
 
   // Implement experimentation preview pill
   if (

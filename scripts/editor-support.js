@@ -1,4 +1,4 @@
-import { showSlide } from '../blocks/carousel/carousel.js';
+import { showSlide, startInterval, stopInterval } from '../blocks/carousel/carousel.js';
 import {
   decorateBlock,
   decorateBlocks,
@@ -6,7 +6,7 @@ import {
   decorateIcons,
   decorateSections,
   loadBlock,
-  loadBlocks,
+  loadSections,
 } from './aem.js';
 import { decorateRichtext } from './editor-support-rte.js';
 import { decorateMain } from './scripts.js';
@@ -48,6 +48,20 @@ function setState(block, state) {
   }
 }
 
+// set the filter for an UE editable
+function setUEFilter(element, filter) {
+  element.dataset.aueFilter = filter;
+}
+
+function updateUEInstrumentation() {
+  const main = document.querySelector('main');
+  const template = document.head.querySelector("[name=template]").getAttribute("content");
+  if (template === "marketing") {
+    // use marketing specific section
+    setUEFilter(main, 'main-marketing');
+  }
+}
+
 async function applyChanges(event) {
   // redecorate default content and blocks on patches (in the properties rail)
   const { detail } = event;
@@ -71,7 +85,7 @@ async function applyChanges(event) {
       element.insertAdjacentElement('afterend', newMain);
       decorateMain(newMain);
       decorateRichtext(newMain);
-      await loadBlocks(newMain);
+      await loadSections(newMain);
       element.remove();
       newMain.style.display = null;
       // eslint-disable-next-line no-use-before-define
@@ -113,7 +127,7 @@ async function applyChanges(event) {
           decorateRichtext(newSection);
           decorateSections(parentElement);
           decorateBlocks(parentElement);
-          await loadBlocks(parentElement);
+          await loadSections(parentElement);
           element.remove();
           newSection.style.display = null;
         } else {
@@ -170,10 +184,45 @@ function attachEventListners(main) {
   ].forEach((eventType) => main?.addEventListener(eventType, async (event) => {
     event.stopPropagation();
     const applied = await applyChanges(event);
-    if (!applied) window.location.reload();
+    if (applied) {
+      updateUEInstrumentation();
+    } else {
+      window.location.reload();
+    }
   }));
 
   main?.addEventListener('aue:ui-select', handleSelection);
 }
 
 attachEventListners(document.querySelector('main'));
+
+// wait for all caorousels to be loaded before stopping the interval
+/*document.querySelectorAll('.carousel').forEach((carousel) => {
+
+  const observer = new MutationObserver((mutationList, observer) => {
+    for (const mutation of mutationList) {
+      if (mutation.type === "attributes" && mutation.attributeName === "data-block-status" &&
+         mutation.target.getAttribute("data-block-status") === "loaded"){
+          stopInterval(carousel);
+      }
+    }
+  });
+  observer.observe(carousel, { attributes: true, childList: false, subtree: false });
+});*/
+
+
+// when entering edit mode stop scrolling
+document.addEventListener('aue:ui-edit', () => {
+  document.querySelectorAll('.block.carousel').forEach( (carousel) => {
+      stopInterval(carousel);
+  });
+});
+
+// when entering preview mode start scrolling
+document.addEventListener('aue:ui-preview', () => {
+  document.querySelectorAll('.block.carousel').forEach( (carousel) => {
+      startInterval(carousel);
+  });
+});
+
+updateUEInstrumentation();
