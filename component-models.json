@@ -593,6 +593,12 @@
     "id": "product-details",
     "fields": [
       {
+        "component": "sku",
+        "valueType": "string",
+        "name": "sku",
+        "label": "SKU"
+      },
+      {
         "component": "text",
         "valueType": "string",
         "name": "date",
