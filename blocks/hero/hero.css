@@ -57,8 +57,11 @@ main .hero-container > div {
 }
 
 .hero > .overlay > div {
+  background: transparent;
   width: fit-content;
-  max-width: 65%;
+  max-width: 60%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* overlay */
@@ -122,10 +125,6 @@ main .hero-container > div {
 .hero.block.overlay-alignment-horizontal-right .overlay {
   display: flex;
   justify-content: flex-end;
-}
-
-.hero .overlay > div {
-  background: transparent;
 }
 
 
