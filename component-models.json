@@ -262,13 +262,6 @@
     "id": "hero",
     "fields": [
       {
-        "component": "reference",
-        "valueType": "string",
-        "name": "image",
-        "label": "Image",
-        "multi": false
-      },
-      {
         "component": "multiselect",
         "valueType": "string",
         "name": "classes",
@@ -292,6 +285,13 @@
             ]
           }
         ]
+      },
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "image",
+        "label": "Image",
+        "multi": false
       },
       {
         "component": "text",
