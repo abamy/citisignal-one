@@ -243,11 +243,6 @@ async function loadThemeSpreadSheetConfig() {
   const theme = getMetadata('design');
   if (!theme) return;
   const resp = await fetch(`/designs/${theme}.json?offset=0&limit=500`);
-<<<<<<< HEAD
-
-=======
-
->>>>>>> template/main
   if (resp.status === 200) {
     // create style element that should be last in the head
     document.head.insertAdjacentHTML('beforeend', `<style id="style-overrides"></style>`);
@@ -256,11 +251,7 @@ async function loadThemeSpreadSheetConfig() {
     const json = await resp.json();
     const tokens = json.data || json.default.data;
     const root = document.querySelector(':root');
-<<<<<<< HEAD
     // go through the entries and create the rule set
-=======
-    // go through the entries and create the rule set
->>>>>>> template/main
     let ruleSet = new Map();
     tokens.forEach((e) => {
       const { Property, Value, Section, Block } = e;
