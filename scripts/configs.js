@@ -40,8 +40,8 @@ function buildConfigURL(environment) {
     fileName = `configs-${env}.json`;
   }
   const configURL = new URL(`${window.location.origin}/${fileName}`);
-  return configURL;
-}
+  return configURL;  
+} 
 
 const getConfigForEnvironment = async (environment) => {
   const env = environment || calcEnvironment();
