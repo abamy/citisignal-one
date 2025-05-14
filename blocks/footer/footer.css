@@ -16,7 +16,7 @@ footer .footer {
 
 footer .footer p {
   margin: 0;
-  font-size: var(--body-font-size-xxs);
+  font-size: var(--body-font-size-xs);
   font-style: normal;
   font-weight: 400;
   line-height: 16px;

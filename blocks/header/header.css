@@ -538,7 +538,7 @@ header .header > .default-content-wrapper p {
   align-items: center;
   gap: 8px;
   text-transform: uppercase;
-  font-size: var(--body-font-size-xxs);
+  font-size: var(--body-font-size-xs);
 }
 
 header .header > .default-content-wrapper p:not(:last-of-type) .icon {
